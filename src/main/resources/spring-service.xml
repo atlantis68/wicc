@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd 
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+        http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="locations">
+			<list>
+				<value>classpath:sys.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+    <context:component-scan base-package="com.dmall.miner.wicc"/>
+
+	 <bean id="lsDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="url">
+            <value>${ls.url}</value>
+        </property>
+        <property name="username">
+            <value>${ls.username}</value>
+        </property>
+        <property name="password">
+            <value>${ls.password}</value>
+        </property>
+        <property name="initialSize">
+            <value>${ls.initialSize}</value>
+        </property>
+        <property name="minIdle">
+            <value>${ls.minIdle}</value>
+        </property>
+        <property name="maxActive">
+            <value>${ls.maxActive}</value>
+        </property>
+        <property name="maxWait">
+            <value>${ls.maxWait}</value>
+        </property>
+        <property name="timeBetweenEvictionRunsMillis">
+            <value>${ls.timeBetweenEvictionRunsMillis}</value>
+        </property>
+        <property name="minEvictableIdleTimeMillis">
+            <value>${ls.minEvictableIdleTimeMillis}</value>
+        </property>
+        <property name="validationQuery">
+            <value>${ls.validationQuery}</value>
+        </property>
+        <property name="testWhileIdle">
+            <value>${ls.testWhileIdle}</value>
+        </property>
+        <property name="testOnBorrow">
+            <value>${ls.testOnBorrow}</value>
+        </property>
+        <property name="testOnReturn">
+            <value>${ls.testOnReturn}</value>
+        </property>     
+        <property name="filters">
+            <value>${ls.filters}</value>
+        </property>              
+    </bean>	
+    
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="lsDataSource"></property>
+	</bean>
+	 
+	<bean id="lsTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+        <property name="dataSource" ref="lsDataSource"></property>  
+    </bean>   
+    
+	<tx:advice id="lsTxAdvice" transaction-manager="lsTransactionManager">
+		<tx:attributes>
+			<tx:method name="save*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="update*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="delete*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="execute*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="add*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="bind*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="unbind*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="generate*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="insert*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="distribute*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="run*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="do*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="calculate*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="clear*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="upload*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="close*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="record*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="batch*" rollback-for="java.lang.Exception" propagation="REQUIRED" />
+			<tx:method name="*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>	
+	
+	<aop:config>
+		<aop:pointcut id="service" expression="execution(* com.dmall.miner.wicc.service..*.* (..))" />
+		<aop:advisor advice-ref="lsTxAdvice" pointcut-ref="service" />	
+	</aop:config>	
+
+</beans>
